@@ -131,7 +131,7 @@ try {
                 </a>
                 <a href="admin-orders.php" class="btn" style="background: #e0a96d;">Orders</a>
                <a href="index.php" class="btn" style="background:#666;" target="_blank">View Website</a>
-                <a href="admin-logout.php" class="btn btn-danger">Logout</a>
+                <a href="logout.php" class="btn btn-danger">Logout</a>
             </div>
         </div>
 
