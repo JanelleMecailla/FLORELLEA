@@ -190,7 +190,7 @@ $orderItems = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
 
-        <a href="index.php" class="btn-home">Continue Shopping</a>
+        <a href="index.php" class="btn-home">Thank You For Shopping With Us!</a>
     </div>
 
 </body>

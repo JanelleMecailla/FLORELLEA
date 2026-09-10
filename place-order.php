@@ -54,27 +54,28 @@ foreach ($_SESSION['cart'] as $productId => $quantity) {
     }
 }
 
-// Calculate total
+// Calculate total & build item data with product_name
 $totalAmount = 0;
 $orderItemsData = [];
 
 foreach ($_SESSION['cart'] as $productId => $quantity) {
-    $price = $productMap[$productId]['price'];
-    $subtotal = $price * $quantity;
+    $productName = $productMap[$productId]['name']; // <--- Grab the product name
+    $price       = $productMap[$productId]['price'];
+    $subtotal    = $price * $quantity;
     $totalAmount += $subtotal;
 
     $orderItemsData[] = [
-        'product_id' => $productId,
-        'quantity'   => $quantity,
-        'price'      => $price
+        'product_id'   => $productId,
+        'product_name' => $productName, // <--- Store product_name in array
+        'quantity'     => $quantity,
+        'price'        => $price
     ];
 }
 
 try {
     $pdo->beginTransaction();
 
-    // 2. Insert into orders table matching your exact columns:
-    // id, customer_name, email, address, city, postal_code, total_amount, created_at
+    // 2. Insert into orders table
     $stmtOrder = $pdo->prepare("
         INSERT INTO orders (customer_name, email, address, city, postal_code, total_amount) 
         VALUES (?, ?, ?, ?, ?, ?)
@@ -90,16 +91,20 @@ try {
 
     $order_id = $pdo->lastInsertId();
 
-    // 3. Insert items into order_items
-    $stmtItem = $pdo->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
+    // 3. Insert items into order_items WITH product_name
+    $stmtItem = $pdo->prepare("
+        INSERT INTO order_items (order_id, product_id, product_name, quantity, price) 
+        VALUES (?, ?, ?, ?, ?)
+    ");
     
-    // Check if stock column exists before updating
+    // Prepared statement for updating stock
     $stmtUpdateStock = $pdo->prepare("UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?");
 
     foreach ($orderItemsData as $item) {
         $stmtItem->execute([
             $order_id,
             $item['product_id'],
+            $item['product_name'], // <--- Pass product_name to query
             $item['quantity'],
             $item['price']
         ]);

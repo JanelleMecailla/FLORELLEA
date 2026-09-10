@@ -24,9 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Please fill in all fields.';
     } else {
 
-        // -------------------------------------------------------------
+        
         // FAILSAFE ADMIN LOGIN (Bypasses DB if hash or column fails)
-        // -------------------------------------------------------------
         if (($input === 'admin@gmail.com' || $input === 'admin') && $password === 'admin123') {
             session_regenerate_id(true);
             $_SESSION['admin_logged_in'] = true;
@@ -38,9 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // -------------------------------------------------------------
+        
         // STANDARD DATABASE LOGIN
-        // -------------------------------------------------------------
         try {
             // Flexible query: handles both 'name' and 'username' columns safely
             $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? OR name = ?");
