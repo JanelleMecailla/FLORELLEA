@@ -399,15 +399,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <li><a href="cart.php">Shopping Bag</a></li>
                 </ul>
             </div>
-            <div>
-                <div class="footer-heading">NEWSLETTER</div>
-                <p style="font-size: 12px; color: #b0b0b0; margin-bottom: 10px;">Subscribe for exclusive scent launches.</p>
-                <form class="newsletter-form" onsubmit="event.preventDefault();">
-                    <input type="email" class="newsletter-input" placeholder="Your email">
-                    <button type="submit" class="newsletter-btn">JOIN</button>
-                </form>
-            </div>
-        </div>
+           
         <div class="footer-bottom">
             &copy; 2026 Florellea Fragrances. All rights reserved.
         </div>

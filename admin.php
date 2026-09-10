@@ -16,10 +16,42 @@ try {
     $unread_count = 0; // Fallback if messages table doesn't exist yet
 }
 
+// --- Fetch Subscribers Count & Data ---
+try {
+    // Auto-create table if it doesn't exist
+    $pdo->exec("CREATE TABLE IF NOT EXISTS subscribers (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )");
+
+    $sub_count_stmt = $pdo->query("SELECT COUNT(*) FROM subscribers");
+    $subscriber_count = $sub_count_stmt->fetchColumn();
+
+    $sub_stmt = $pdo->query("SELECT * FROM subscribers ORDER BY created_at DESC");
+    $subscribers = $sub_stmt->fetchAll();
+} catch (PDOException $e) {
+    $subscriber_count = 0;
+    $subscribers = [];
+}
+
 $message = '';
 $error = '';
 
-// Handle Delete Request
+// Handle Delete Subscriber Request
+if (isset($_GET['action']) && $_GET['action'] === 'delete_sub') {
+    $sub_id = (int)$_GET['id'];
+    try {
+        $stmt = $pdo->prepare("DELETE FROM subscribers WHERE id = ?");
+        $stmt->execute([$sub_id]);
+        header('Location: admin.php?msg=sub_deleted');
+        exit;
+    } catch (PDOException $e) {
+        $error = "Could not remove subscriber.";
+    }
+}
+
+// Handle Delete Product Request
 if (isset($_GET['action']) && $_GET['action'] === 'delete') {
     $id = (int)$_GET['id'];
     try {
@@ -106,7 +138,9 @@ try {
         .btn-danger { background: #d9534f; }
         .btn-edit { background: #e0a96d; }
         .btn-msg { background: #f3a6b8; color: #fff; font-weight: bold; }
+        .btn-sub { background: #4a90e2; color: #fff; font-weight: bold; }
         .badge { background: #e74c3c; color: white; border-radius: 10px; padding: 2px 7px; font-size: 11px; }
+        .badge-blue { background: #357abd; color: white; border-radius: 10px; padding: 2px 7px; font-size: 11px; }
         table { width: 100%; border-collapse: collapse; background: #fff; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
         th { background: #f4f4f4; font-size: 11px; }
@@ -129,8 +163,15 @@ try {
                         <span class="badge"><?php echo $unread_count; ?></span>
                     <?php endif; ?>
                 </a>
+                
+                <!-- Subscribers Navigation Button -->
+                <a href="#subscribers-section" class="btn btn-sub">
+                    Subscribers
+                    <span class="badge-blue"><?php echo $subscriber_count; ?></span>
+                </a>
+
                 <a href="admin-orders.php" class="btn" style="background: #e0a96d;">Orders</a>
-               <a href="index.php" class="btn" style="background:#666;" target="_blank">View Website</a>
+                <a href="index.php" class="btn" style="background:#666;" target="_blank">View Website</a>
                 <a href="logout.php" class="btn btn-danger">Logout</a>
             </div>
         </div>
@@ -236,6 +277,38 @@ try {
                 </tbody>
             </table>
         </div>
+
+        <!-- Subscribers Table Section -->
+        <div class="card" id="subscribers-section">
+            <h3>Newsletter Subscribers (<?php echo $subscriber_count; ?>)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>EMAIL ADDRESS</th>
+                        <th>SUBSCRIBED DATE</th>
+                        <th>ACTION</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($subscribers)): ?>
+                        <tr><td colspan="4" style="text-align:center; color: #888;">No subscribers yet.</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($subscribers as $sub): ?>
+                            <tr>
+                                <td>#<?php echo htmlspecialchars($sub['id']); ?></td>
+                                <td><strong><?php echo htmlspecialchars($sub['email']); ?></strong></td>
+                                <td><?php echo date('M d, Y - h:i A', strtotime($sub['created_at'])); ?></td>
+                                <td>
+                                    <a href="admin.php?action=delete_sub&id=<?php echo $sub['id']; ?>" class="btn btn-danger" onclick="return confirm('Remove this email from subscribers?');">Remove</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+
     </div>
 </body>
 </html>
